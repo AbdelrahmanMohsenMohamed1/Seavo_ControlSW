@@ -61,6 +61,7 @@ void MX_FREERTOS_Init(void);
 void ControlMainFunction_Task    (void  * argument);
 void ShutDowenSequenceFunctio_Task    (void  * argument);
 void SpeedControl_Task    (void  * argument);
+void DashboardDisplay_Task    (void  * argument);
 
 uint8_t FristTimeFlag = 0;
 int32_t u8_RequestedSpeed = 500;
@@ -77,12 +78,33 @@ GPIO_PinState RighProximity_State;
 GPIO_PinState LeftProximity_State;
 typedef enum
 {
+	Displat_Init,
+	Display_Black,
+	Display_Intro,
+	Display_Gear0,
+	Display_Gear1,
+	Display_Gear2,
+	Display_Gear3,
+	Display_Gear4,
+	Display_Gear5,
+}Display_t;
+//Display_t prev_display= Display_Black;
+Display_t current_display=Displat_Init;
+typedef enum
+{
 	System_OpenSequenceOn,
 	System_Operation,
 	System_OpenSequenceOff,
 }System_State_t;
 System_State_t System_State;
-
+uint8_t Display_BlackScreen[9]={0x70,0x61,0x67,0x65,0x20,0x30,0xff,0xff,0xff};
+uint8_t Display_IntroScreen[9]={0x70,0x61,0x67,0x65,0x20,0x31,0xff,0xff,0xff};
+uint8_t Display_Speed0[9]={0x70,0x61,0x67,0x65,0x20,0x32,0xff,0xff,0xff};
+uint8_t Display_Speed1[9]={0x70,0x61,0x67,0x65,0x20,0x33,0xff,0xff,0xff};
+uint8_t Display_Speed2[9]={0x70,0x61,0x67,0x65,0x20,0x34,0xff,0xff,0xff};
+uint8_t Display_Speed3[9]={0x70,0x61,0x67,0x65,0x20,0x35,0xff,0xff,0xff};
+uint8_t Display_Speed4[9]={0x70,0x61,0x67,0x65,0x20,0x36,0xff,0xff,0xff};
+uint8_t Display_Speed5[9]={0x70,0x61,0x67,0x65,0x20,0x37,0xff,0xff,0xff};
 /* USER CODE END 0 */
 
 /**
@@ -119,11 +141,15 @@ int main(void)
 	MX_USART1_UART_Init();
 	/* USER CODE BEGIN 2 */
 	System_State = System_OpenSequenceOn;
-	xTaskCreate(ShutDowenSequenceFunctio_Task, NULL, 100 , NULL , 3 , NULL);
-	xTaskCreate(ControlMainFunction_Task, NULL, 100 , NULL , 1 , NULL);
-	xTaskCreate(SpeedControl_Task, NULL, 100 , NULL , 2 , NULL);
+	xTaskCreate(ShutDowenSequenceFunctio_Task, NULL, 100 , NULL , 4 , NULL);
+	xTaskCreate(ControlMainFunction_Task, NULL, 100 , NULL , 2 , NULL);
+	xTaskCreate(SpeedControl_Task, NULL, 100 , NULL , 3 , NULL);
+	xTaskCreate(DashboardDisplay_Task, NULL, 100 , NULL , 1 , NULL);
+
 	__HAL_TIM_SET_COMPARE(&htim1 ,TIM_CHANNEL_1 , 500);
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+	//uint8_t ter = 0xff;
+	//HAL_UART_Transmit(&huart1, Display_IntroScreen, sizeof(Display_IntroScreen), HAL_MAX_DELAY);
 
 	/* USER CODE END 2 */
 
@@ -347,6 +373,172 @@ void SpeedControl_Task(void *argument) {
 		vTaskDelay(20); // Adjust this value as needed
 	}
 }
+
+//void DashboardDisplay_Task    (void  * argument)
+//{
+//	while(1)
+//	{
+//		switch(System_State)
+//		{
+//		case System_OpenSequenceOn:
+//			if (current_display != Display_Black)
+//			{
+//				current_display = Display_Black;
+//				// Send UART Display Black Page
+//			}
+//
+//			// Black screen
+//			break;
+//		case System_Operation:
+//			if (current_display == Display_Black) // Check if we are transitioning from OpenSequence
+//			{
+//				current_display = Display_Intro;
+//				// Send UART command to display the Intro Page
+//				//vTaskDelay(3000); // Display intro for 3 seconds
+//			}
+//
+//			switch(u8_RequestedSpeed)
+//			{
+//			case 500:
+//				if(current_display != Display_Gear0)
+//				{
+//					current_display = Display_Gear0;
+//					// Send UART Display Gear 0 Page
+//				}
+//				break;
+//			case 590:
+//				if(current_display != Display_Gear1)
+//				{
+//					current_display = Display_Gear1;
+//					// Send UART Display Gear 1 Page
+//				}
+//				break;
+//			case 680:
+//				if(current_display != Display_Gear2)
+//				{
+//					current_display = Display_Gear2;
+//					// Send UART Display Gear 2 Page
+//				}
+//				break;
+//			case 770:
+//				if(current_display != Display_Gear3)
+//				{
+//					current_display = Display_Gear3;
+//					// Send UART Display Gear 3 Page
+//				}
+//				break;
+//			case 860:
+//
+//				if(current_display != Display_Gear4)
+//				{
+//					current_display = Display_Gear4;
+//					// Send UART Display Gear 4 Page
+//				}
+//				break;
+//			case 950:
+//				if(current_display != Display_Gear5)
+//				{
+//					current_display = Display_Gear5;
+//					// Send UART Display Gear 5 Page
+//				}
+//				break;
+//			default: break;
+//
+//			}
+//			break;
+//
+//
+//			default : break;
+//		}
+//		vTaskDelay(500);
+//	}
+//}
+void DashboardDisplay_Task(void *argument)
+{
+	while(1)
+	{
+		switch(System_State)
+		{
+		case System_OpenSequenceOn:
+			if (current_display != Display_Black)
+			{
+				current_display = Display_Black;
+				// Send UART command to display the Black Page
+				HAL_UART_Transmit(&huart1, Display_BlackScreen, 9, 1000);
+			}
+			break;
+
+		case System_Operation:
+			if (current_display == Display_Black) // Check if we are transitioning from OpenSequence
+			{
+				current_display = Display_Intro;
+				// Send UART command to display the Intro Page
+				HAL_UART_Transmit(&huart1, Display_IntroScreen, 9, 1000);
+				vTaskDelay(3000); // Display intro for 3 seconds
+			}
+
+			// Handle gear display based on requested speed
+			switch(u8_RequestedSpeed)
+			{
+			case 500:
+				if(current_display != Display_Gear0)
+				{
+					current_display = Display_Gear0;
+					HAL_UART_Transmit(&huart1, Display_Speed0, 9, 1000);
+					// Send UART command to display Gear 0 Page
+				}
+				break;
+			case 590:
+				if(current_display != Display_Gear1)
+				{
+					current_display = Display_Gear1;
+					HAL_UART_Transmit(&huart1, Display_Speed1, 9, 1000);
+					// Send UART command to display Gear 1 Page
+				}
+				break;
+			case 680:
+				if(current_display != Display_Gear2)
+				{
+					current_display = Display_Gear2;
+					HAL_UART_Transmit(&huart1, Display_Speed2, 9, 1000);
+					// Send UART command to display Gear 2 Page
+				}
+				break;
+			case 770:
+				if(current_display != Display_Gear3)
+				{
+					current_display = Display_Gear3;
+					HAL_UART_Transmit(&huart1, Display_Speed3, 9, 1000);
+					// Send UART command to display Gear 3 Page
+				}
+				break;
+			case 860:
+				if(current_display != Display_Gear4)
+				{
+					current_display = Display_Gear4;
+					HAL_UART_Transmit(&huart1, Display_Speed4, 9, 1000);
+					// Send UART command to display Gear 4 Page
+				}
+				break;
+			case 950:
+				if(current_display != Display_Gear5)
+				{
+					current_display = Display_Gear5;
+					HAL_UART_Transmit(&huart1, Display_Speed5, 9, 1000);
+					// Send UART command to display Gear 5 Page
+				}
+				break;
+			default: break;
+			}
+			break;
+
+			default: break;
+		}
+
+		vTaskDelay(250); // Task delay
+	}
+}
+
 /* USER CODE END 4 */
 
 /**
