@@ -20,6 +20,7 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "tim.h"
+#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -115,6 +116,7 @@ int main(void)
 	MX_TIM1_Init();
 	MX_TIM4_Init();
 	MX_TIM3_Init();
+	MX_USART1_UART_Init();
 	/* USER CODE BEGIN 2 */
 	System_State = System_OpenSequenceOn;
 	xTaskCreate(ShutDowenSequenceFunctio_Task, NULL, 100 , NULL , 3 , NULL);
@@ -268,7 +270,8 @@ void ShutDowenSequenceFunctio_Task(void *argument) {
 			LeftProximity_State = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_11);
 
 			// Check proximity sensors
-			if (RighProximity_State != GPIO_PIN_RESET || LeftProximity_State != GPIO_PIN_RESET) {
+			//if (RighProximity_State != GPIO_PIN_RESET || LeftProximity_State != GPIO_PIN_RESET)
+			if (RighProximity_State != GPIO_PIN_RESET ) {
 				iterator = 0;
 				current_speed = 500;
 				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, current_speed);
@@ -316,7 +319,8 @@ void SpeedControl_Task(void *argument) {
 		LeftProximity_State = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_11);
 
 		// Check if the system is in operation mode and both proximity sensors are not triggered
-		if (System_State == System_Operation && RighProximity_State == GPIO_PIN_RESET && LeftProximity_State == GPIO_PIN_RESET) {
+		//if (System_State == System_Operation && RighProximity_State == GPIO_PIN_RESET && LeftProximity_State == GPIO_PIN_RESET)
+		if (System_State == System_Operation && RighProximity_State == GPIO_PIN_RESET) {
 			// Start the PWM signal
 			HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 
