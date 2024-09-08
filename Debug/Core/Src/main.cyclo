@@ -1,8 +1,9 @@
-main.c:114:5:main	1
-main.c:179:6:SystemClock_Config	3
-main.c:216:6:ControlMainFunction_Task	15
-main.c:292:6:ShutDowenSequenceFunctio_Task	6
-main.c:341:6:SpeedControl_Task	5
-main.c:456:6:DashboardDisplay_Task	21
-main.c:552:6:HAL_TIM_PeriodElapsedCallback	8
-main.c:597:6:Error_Handler	1
+../Core/Src/main.c:158:5:int32ToAsciiArray	7
+../Core/Src/main.c:200:5:main	2
+../Core/Src/main.c:272:6:SystemClock_Config	3
+../Core/Src/main.c:309:6:ControlMainFunction_Task	15
+../Core/Src/main.c:395:6:ShutDowenSequenceFunctio_Task	10
+../Core/Src/main.c:593:6:DashboardDisplay_Task	24
+../Core/Src/main.c:714:6:HAL_CAN_RxFifo0MsgPendingCallback	6
+../Core/Src/main.c:818:6:HAL_TIM_PeriodElapsedCallback	8
+../Core/Src/main.c:863:6:Error_Handler	1
