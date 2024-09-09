@@ -61,7 +61,7 @@ void MX_FREERTOS_Init(void);
 
 void ControlMainFunction_Task    (void  * argument);
 void ShutDowenSequenceFunctio_Task    (void  * argument);
-//void SpeedControl_Task    (void  * argument);
+void SpeedControl_Task    (void  * argument);
 void DashboardDisplay_Task    (void  * argument);
 
 
@@ -90,7 +90,7 @@ int16_t Rec_VoltageIn;
 
 uint8_t commandID=0;
 int32_t ERPM=0;
-float Current=5;
+float Current=0;
 float DutyCycle =0;
 float AhUsed =0;
 float AhCharged=0;
@@ -230,7 +230,7 @@ int main(void)
 	System_State = System_OpenSequenceOn;
 	xTaskCreate(ShutDowenSequenceFunctio_Task, NULL, 128 , NULL , 4 , NULL);
 	xTaskCreate(ControlMainFunction_Task, NULL, 128 , NULL , 2 , NULL);
-	//xTaskCreate(SpeedControl_Task, NULL, 100 , NULL , 3 , NULL);
+	xTaskCreate(SpeedControl_Task, NULL, 100 , NULL , 3 , NULL);
 	xTaskCreate(DashboardDisplay_Task, NULL, 128 , NULL , 1 , NULL);
 
 	__HAL_TIM_SET_COMPARE(&htim1 ,TIM_CHANNEL_1 , 500);
@@ -308,12 +308,6 @@ void SystemClock_Config(void)
 
 void ControlMainFunction_Task(void *argument) {
 	while (1) {
-		// Get the message
-		//			if (HAL_CAN_GetRxMessage(&hcan, CAN_RX_FIFO0, &rxHeader, rxData) != HAL_OK)
-		//			{
-		//				// Reception error
-		//				uint8_t Test=1;
-		//			}
 
 		switch (System_State) {
 		case System_OpenSequenceOn:
@@ -440,6 +434,12 @@ void ShutDowenSequenceFunctio_Task(void *argument) {
 				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
 			}
 		}
+		vTaskDelay(30);
+	}
+}
+
+void SpeedControl_Task(void *argument) {
+	while (1) {
 		// Read the proximity states
 		RighProximity_State = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_3);
 		LeftProximity_State = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_11);
@@ -470,126 +470,9 @@ void ShutDowenSequenceFunctio_Task(void *argument) {
 		}
 
 		// Add a delay to control the speed adjustment rate
-
-		vTaskDelay(30);
+		vTaskDelay(20); // Adjust this value as needed
 	}
 }
-
-//void SpeedControl_Task(void *argument) {
-//	while (1) {
-//		// Read the proximity states
-//		RighProximity_State = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_3);
-//		LeftProximity_State = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_11);
-//
-//		// Check if the system is in operation mode and both proximity sensors are not triggered
-//		//if (System_State == System_Operation && RighProximity_State == GPIO_PIN_RESET && LeftProximity_State == GPIO_PIN_RESET)
-//		if (System_State == System_Operation && RighProximity_State == GPIO_PIN_RESET) {
-//			// Start the PWM signal
-//			HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-//
-//			// Adjust the current speed to match the requested speed
-//			if (u8_RequestedSpeed > current_speed) {
-//				current_speed++; // Increment current speed
-//			} else if (u8_RequestedSpeed < current_speed) {
-//				current_speed--; // Decrement current speed
-//			}
-//
-//			// Set the new compare value to adjust the duty cycle
-//			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, current_speed);
-//
-//
-//
-//			// Restart the PWM with the new compare value
-//			HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-//		} else {
-//			// If the system is not in operation or proximity sensors are triggered, stop the PWM
-//			HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
-//		}
-//
-//		// Add a delay to control the speed adjustment rate
-//		vTaskDelay(20); // Adjust this value as needed
-//	}
-//}
-
-//void DashboardDisplay_Task    (void  * argument)
-//{
-//	while(1)
-//	{
-//		switch(System_State)
-//		{
-//		case System_OpenSequenceOn:
-//			if (current_display != Display_Black)
-//			{
-//				current_display = Display_Black;
-//				// Send UART Display Black Page
-//			}
-//
-//			// Black screen
-//			break;
-//		case System_Operation:
-//			if (current_display == Display_Black) // Check if we are transitioning from OpenSequence
-//			{
-//				current_display = Display_Intro;
-//				// Send UART command to display the Intro Page
-//				//vTaskDelay(3000); // Display intro for 3 seconds
-//			}
-//
-//			switch(u8_RequestedSpeed)
-//			{
-//			case 500:
-//				if(current_display != Display_Gear0)
-//				{
-//					current_display = Display_Gear0;
-//					// Send UART Display Gear 0 Page
-//				}
-//				break;
-//			case 590:
-//				if(current_display != Display_Gear1)
-//				{
-//					current_display = Display_Gear1;
-//					// Send UART Display Gear 1 Page
-//				}
-//				break;
-//			case 680:
-//				if(current_display != Display_Gear2)
-//				{
-//					current_display = Display_Gear2;
-//					// Send UART Display Gear 2 Page
-//				}
-//				break;
-//			case 770:
-//				if(current_display != Display_Gear3)
-//				{
-//					current_display = Display_Gear3;
-//					// Send UART Display Gear 3 Page
-//				}
-//				break;
-//			case 860:
-//
-//				if(current_display != Display_Gear4)
-//				{
-//					current_display = Display_Gear4;
-//					// Send UART Display Gear 4 Page
-//				}
-//				break;
-//			case 950:
-//				if(current_display != Display_Gear5)
-//				{
-//					current_display = Display_Gear5;
-//					// Send UART Display Gear 5 Page
-//				}
-//				break;
-//			default: break;
-//
-//			}
-//			break;
-//
-//
-//			default : break;
-//		}
-//		vTaskDelay(500);
-//	}
-//}
 void DashboardDisplay_Task(void *argument)
 {
 	while(1)
@@ -601,17 +484,20 @@ void DashboardDisplay_Task(void *argument)
 			{
 				current_display = Display_Black;
 				// Send UART command to display the Black Page
-				HAL_UART_Transmit(&huart1, Display_BlackScreen, 9, 1000);
+				//HAL_UART_Transmit(&huart1, Display_BlackScreen, 9, 1000);
+				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, 0);
 			}
 			break;
 
 		case System_Operation:
 			if (current_display == Display_Black) // Check if we are transitioning from OpenSequence
 			{
+				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, 1);
+				vTaskDelay(100);
 				current_display = Display_Intro;
 				// Send UART command to display the Intro Page
 				HAL_UART_Transmit(&huart1, Display_IntroScreen, 9, 1000);
-				vTaskDelay(8500); // Display intro for 3 seconds
+				vTaskDelay(9000); // Display intro for 3 seconds
 			}
 
 			// Handle gear display based on requested speed
